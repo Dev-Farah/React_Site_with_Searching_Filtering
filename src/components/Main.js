@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useEffect, useState } from 'react';
 import logo from '../logo.svg';
 import { Container, Box } from '@mui/system';
-import { Card, CardContent, CardMedia, Tooltip } from '@mui/material';
+import { Card, CardContent, CardMedia, Tooltip, Chip } from '@mui/material';
 import { AppBar, Toolbar, Grid, TextField, Typography, Button } from '@mui/material';
 
 
@@ -26,6 +26,16 @@ import PersonOutlineOutlinedIcon from '@mui/icons-material/PersonOutlineOutlined
 import MessageOutlinedIcon from '@mui/icons-material/MessageOutlined';
 import MonetizationOnOutlinedIcon from '@mui/icons-material/MonetizationOnOutlined';
 import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
+
+
+import Paper from '@mui/material/Paper';
+// import InputBase from '@mui/material/InputBase';
+import Divider from '@mui/material/Divider';
+// import IconButton from '@mui/material/IconButton';
+// import MenuIcon from '@mui/icons-material/Menu';
+// import SearchIcon from '@mui/icons-material/Search';
+import DirectionsIcon from '@mui/icons-material/Directions';
+
 
 // import React, { Component } from "react";
 import Slider from "react-slick";
@@ -87,9 +97,8 @@ export default function HeaderAndBody() {
 
   ]);
   const [allCategories, setAllCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState("");
   const [filterList, setFilterList] = useState([]);
-  const [multiItemsList, setMultiItemsList] = useState([]);
+  let [selectedCategoryArr, setSelectedCategoryArr] = useState([]);
 
 
   // Extract Unique categories from main product Array
@@ -99,16 +108,33 @@ export default function HeaderAndBody() {
     setAllCategories([...li]);
   };
 
-  let searchCategoryItem = (val) => {
-    setSelectedCategory(val);
-    let filteredList = productList.filter((x) => x.category == val);
-    // filteredList = [...new Set([...val])];
-    setFilterList([...filteredList]);
+  let selectBtn = (val) => {
+    let arr = [...selectedCategoryArr];
+    arr.push(val);
+    arr = [...new Set([...arr])];
+
+    let arr2 = [];
+
+    arr.forEach((y) => {
+      arr2 = [...arr2, ...productList.filter((x) => x.category == y)];
+    });
+
+    setFilterList([...arr2]);
+    setSelectedCategoryArr([...arr]);
   };
 
-  let multiCategories = () => {
-    console.log("its working");
-  }
+  let removeCategory = (ind) => {
+    selectedCategoryArr.splice(ind, 1);
+    setSelectedCategoryArr([...selectedCategoryArr]);
+
+    let arr2 = [];
+
+    selectedCategoryArr.forEach((y) => {
+      arr2 = [...arr2, ...productList.filter((x) => x.category == y)];
+    });
+
+    setFilterList([...arr2]);
+  };
 
   useEffect(() => {
     getCategories();
@@ -135,22 +161,20 @@ export default function HeaderAndBody() {
           </Box>
 
           <Box sx={{ width: "50%" }}>
-            <TextField id="outlined-search"
-              sx={{ border: "3px solid #FF6A00", borderRadius: "40px 0 0 40px", width: "80%", padding: "0 10px", textDecoration: "none" }}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-
-                    <CameraAltOutlinedIcon />
-                  </InputAdornment>
-                ),
-              }}
-              // variant="standard"
-              label="&nbsp;&nbsp;&nbsp;&nbsp;What are you looking for..."
-              variant="standard"
-              type="search"
-            />
-            <Button variant="contained" sx={{ backgroundColor: "#FF6A00", borderRadius: "0 40px 40px 0", padding: "13px 20px", '&:hover': { backgroundColor: "#de5c00" } }}><SearchIcon /> SEARCH</Button>
+            <Paper
+              component="form"
+              sx={{ p: '0', display: 'flex', alignItems: 'center', width: "100%", border: "2px solid #FF6A00", borderRadius: "40px" }}
+            >
+              <InputBase
+                sx={{ ml: 2, flex: 1 }}
+                placeholder="What are you looking for..."
+                inputProps={{ 'aria-label': 'what are you looking for...' }}
+              />
+              <IconButton type="button" sx={{ p: '10px' }} aria-label="search">
+                <CameraAltOutlinedIcon />
+              </IconButton>
+              <Button variant="contained" sx={{ backgroundColor: "#FF6A00", borderRadius: "0 40px 40px 0", boxShadow: "none", padding: "10px 15px", '&:hover': { backgroundColor: "#de5c00" } }}><SearchIcon /> SEARCH</Button>
+            </Paper>
           </Box>
 
 
@@ -183,30 +207,49 @@ export default function HeaderAndBody() {
 
         </Toolbar>
 
-
       </AppBar>
       {/* -------------------------- Navigation Bar Ends -------------------------- */}
 
 
       {/* -------------------------- Categories Slider -------------------------- */}
-      <Toolbar sx={{ backgroundColor: "#f1f1f1" }}>
-        <section style={{ overflow: "hidden", height: "130px", width: "80%", margin: "0 auto" }}>
-          <h2 style={{ margin: "10px auto", color: 'darkgray' }}>Categories</h2>
+      <Toolbar>
+        <section style={{ overflow: "hidden", height: "150px", width: "80%", margin: "0 auto" }}>
+          <h2 style={{ margin: "10px auto", color: '#FF6A00' }}>Categories</h2>
+
           <Slider {...settings}>
-            {allCategories.map((e) => {
-              return (
-                <>
-                  <Button
-                    onClick={(e) => searchCategoryItem(e.target.value)}
-                    value={e}
-                    variant='contain'
-                    sx={{ fontSize: 12 }} color="text.secondary"
-                    key={e.id}>
-                    {e}
-                  </Button>
-                </>
-              )
-            })}
+
+            {selectedCategoryArr && selectedCategoryArr.length > 0
+              ? selectedCategoryArr.map((x, i) => (
+                <Chip
+                  sx={{ width: "fit-content !important" }}
+                  color={"primary"}
+                  key={i}
+                  onDelete={() => removeCategory(i)}
+                  label={x}
+                />
+              ))
+              : null}
+
+          </Slider>
+
+          <Slider {...settings}>
+
+            {allCategories && allCategories.length > 0
+              ? allCategories.map((e) => {
+                return (
+                  <>
+                    <Button
+                      onClick={() => selectBtn(e)}
+                      value={e}
+                      variant='contain'
+                      sx={{ fontSize: 12 }} color="text.secondary"
+                      key={e.id}>
+                      {e}
+                    </Button>
+                  </>
+                )
+              })
+              : null}
 
           </Slider>
         </section>
@@ -225,6 +268,7 @@ export default function HeaderAndBody() {
           <Grid item xl={3} lg={3} md={3} sm={6} xs={12} m={1}
             key={i}
           >
+            <Chip sx={{ alignSelf: "center" }} label={e.category} />
             <Card
               sx={{ maxWidth: 290 }}
             >
@@ -251,8 +295,6 @@ export default function HeaderAndBody() {
                     >
                       {e.title.slice(0, 43) + (e.title.length > 43 ? "..." : "")}
                     </Typography>
-
-                    {/* <FavoriteBorderIcon /> */}
                   </Box>
                 </Tooltip>
 
@@ -321,8 +363,6 @@ export default function HeaderAndBody() {
                     >
                       {e.title.slice(0, 43) + (e.title.length > 43 ? "..." : "")}
                     </Typography>
-
-                    {/* <FavoriteBorderIcon /> */}
                   </Box>
                 </Tooltip>
 
